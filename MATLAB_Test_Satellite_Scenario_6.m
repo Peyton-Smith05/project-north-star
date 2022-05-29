@@ -1,63 +1,62 @@
 % Create Satellite Scenario
 startTime = datetime(2022,5,11,12,35,38);
 stopTime = startTime + days(2); % 48 hours length
-sampleTime = 60;
+sampleTime = 60; % seconds (I think)
 sc = satelliteScenario(startTime,stopTime,sampleTime)
 
 
 % Add Satellites to the Satellite Scenario
 tleFile = "leoSatelliteConstellation.tle";
-m = 3
-n = length(readlines(tleFile))/m
-Name = string(1:n);
-tbk_Name = Name + 'tbk';
+lines_per_satellite = 3 % TLE files usually have a new satellite every 3 lines
+number_of_satellites = length(readlines(tleFile)) / lines_per_satellite
+Name = string(1:number_of_satellites);
 SGP4_Name = Name + 'SGP4';
-SDP4_Name = Name + 'SDP4';
 
-% satTwoBodyKeplerian = satellite(sc,tleFile, ...
-%     "Name",tbk_Name, ...
-%     "OrbitPropagator","two-body-keplerian") % Red
 
 satSGP4 = satellite(sc,tleFile, ...
     "Name",SGP4_Name, ...
-    "OrbitPropagator","sgp4") % Green
-
-% satSDP4 = satellite(sc,tleFile, ...
-%     "Name",SDP4_Name, ...
-%     "OrbitPropagator","sdp4") % Pink
+    "OrbitPropagator","sgp4") % Red
 
 
-% Visualize the Satellites and their Orbits
-v = satelliteScenarioViewer(sc);
-
-for i = (1:n) 
-    satSGP4(i).MarkerColor = [0 1 0];
-    satSGP4(i).Orbit.LineColor = [0 1 0];
-    satSGP4(i).LabelFontColor = [0 1 0];
-    satSDP4(i).MarkerColor = [1 0 1];
-    satSDP4(i).Orbit.LineColor = [1 0 1];
-    satSDP4(i).LabelFontColor = [1 0 1];
-end
-
-% satSGP4.MarkerColor = [0 1 0];
-% satSGP4.Orbit.LineColor = [0 1 0];
-% satSGP4.LabelFontColor = [0 1 0];
-% satSDP4.MarkerColor = [1 0 1];
-% satSDP4.Orbit.LineColor = [1 0 1];
-% satSDP4.LabelFontColor = [1 0 1];
-
-% camtarget(v,satSGP4);
-
-% Visualize a Dynamic Animation of the Satellite Movement
-play(sc)
-
-% camtarget(v,satSGP4);
+% % Visualize the Satellites and their Orbits
+% v = satelliteScenarioViewer(sc);
+% 
+% % Visualize a Dynamic Animation of the Satellite Movement
+% play(sc)
 
 
 % Obtain the Position and Velocity History of the Satellites
-[positionTwoBodyKeplerian,velocityTwoBodyKeplerian,time] = states(satTwoBodyKeplerian);
-[positionSGP4,velocitySGP4] = states(satSGP4);
-[positionSDP4,velocitySDP4] = states(satSDP4);
+[positionSGP4, velocitySGP4, time] = states(satSGP4);
+positionSGP4_magnitude = vecnorm(positionSGP4,2,1);
+velocitySGP4_magnitude = vecnorm(velocitySGP4,2,1);
+
+for index = (1:number_of_satellites)
+    plot(time, positionSGP4_magnitude(:,:,index))
+    xlabel("Time")
+    ylabel("Position (m)")
+    legend(string(index) + " SGP4")
+    saveas(gcf, "plot_position_" + string(index) + ".png")
+    
+    plot(time, velocitySGP4_magnitude(:,:,index))
+    xlabel("Time")
+    ylabel("Velocity deviation (m/s)")
+    legend(string(index) + " SGP4")
+    saveas(gcf, "plot_velocity_" + string(index) + ".png")
+end
+
+% test_index = 40
+% plot(time, positionSGP4_magnitude(:,:,test_index))
+% xlabel("Time")
+% ylabel("Position (m)")
+% legend(string(test_index) + " SGP4")
+% saveas(gcf, "plot_position_" + string(test_index) + ".png")
+% 
+% plot(time, velocitySGP4_magnitude(:,:,test_index))
+% xlabel("Time")
+% ylabel("Velocity deviation (m/s)")
+% legend(string(test_index) + " SGP4")
+% saveas(gcf, "plot_velocity_" + string(test_index) + ".png")
+
 
 % 
 % % Plot the Magnitude of Relative Position with Respect to Two-Body-Kelerian
