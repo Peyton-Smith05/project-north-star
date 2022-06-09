@@ -45,6 +45,13 @@ tracker = trackerJPDA('FilterInitializationFcn',@initKeplerUKF,...
     'DeletionThreshold',[5 8],...
     'ConfirmationThreshold',[5 8]);
 
+
+
+
+
+
+
+
 % Running the simulation
 viewer = trackingGlobeViewer('ShowDroppedTracks',false, ...
     'PlatformHistoryDepth',700); % For visualization
@@ -56,8 +63,8 @@ covcon(1) = coverageConfig(radar1,lla2ecef(station1),quaternion(ned1,'rotmat','f
 covcon(2) = coverageConfig(radar2,lla2ecef(station2),quaternion(ned2, 'rotmat','frame'));
 plotCoverage(viewer, covcon, 'ECEF');
 
-satscene.StopTime = satscene.StartTime + hours(5);
-satscene.SampleTime = 10;
+satscene.StopTime = satscene.StartTime + hours(5); % Set 5 hour time frame
+satscene.SampleTime = 10; % refreshed every 10 seconds (more accurate but slows down simulation)
 numSteps = ceil(seconds(satscene.StopTime - satscene.StartTime)/satscene.SampleTime);
 
 % Get constellation positions and velocity over the course of the simulation
@@ -142,6 +149,8 @@ end
 % Show cumulative metrics for each individual recorded truth object
 results = truthMetricsTable(tam);
 results(:,{'TruthID','AssociatedTrackID','BreakLength','EstablishmentLength'})
+
+
 
 
 
