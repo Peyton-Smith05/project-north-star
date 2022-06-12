@@ -1,12 +1,12 @@
 % Create Satellite Scenario
-startTime = datetime(2022,5,11,12,35,38);
-stopTime = startTime + hours(21/60); % hours length
+startTime = datetime(2022,6,11,12,35,38);
+stopTime = startTime + days(3); % hours length
 sampleTime = 60; % seconds between refresh
 sc = satelliteScenario(startTime,stopTime,sampleTime)
 
 
 % Add Satellites to the Satellite Scenario
-tleFile = "leoSatelliteConstellation2.tle";
+tleFile = "22-144 LEO ELSETs Copy.txt";
 lines_per_satellite = 3 % TLE files usually have a new satellite every 3 lines
 number_of_satellites = length(readlines(tleFile)) / lines_per_satellite
 Name = string(1:number_of_satellites);
@@ -17,11 +17,10 @@ satSGP4 = satellite(sc,tleFile, ...
     "OrbitPropagator","sgp4") % Red
 
 
-% % Visualize the Satellites and their Orbits
-% v = satelliteScenarioViewer(sc);
-% 
-% % Visualize a Dynamic Animation of the Satellite Movement
-% play(sc)
+% Visualize the Satellites and their Orbits
+v = satelliteScenarioViewer(sc);
+% Visualize a Dynamic Animation of the Satellite Movement
+play(sc)
 
 
 % Obtain the Position and Velocity History of the Satellites
@@ -104,10 +103,47 @@ for index_4 = (1:length(time)) % Each page is time
             possible_conj_indeces(count,3) = index_4;
         end
     end
-end 
+end
 
-count
-possible_conj_indeces
+% % For showing the number of possible conjunctions
+% count
+% possible_conj_indeces
 
 
 % Verify Possible Conjunctions
+count_2 = 0;
+coordinate_diff = [];
+time_stamp = 0;
+satellite_A_number = 0;
+satellite_A_coordinates = [];
+satellite_B_number = 0;
+satellite_B_coordinates = [];
+actual_conjunctions = []; % satellite#A, satellite#B, timestamp
+near_coordinates = near / sqrt(3);
+
+for index_6 = (1:length(possible_conj_indeces(:,3))) % Length of each timestamp
+    
+    time_stamp = possible_conj_indeces(index_6,3); % current timestamp
+
+    satellite_A_number = possible_conj_indeces(index_6,1);
+    satellite_A_coordinates = ...
+        pos_by_timepages(satellite_A_number,:,time_stamp);
+    
+    satellite_B_number = possible_conj_indeces(index_6,2);
+    satellite_B_coordinates = ...
+        pos_by_timepages(satellite_B_number,:,time_stamp);
+    
+    coordinate_diff = satellite_A_coordinates - satellite_B_coordinates;
+    coordinate_diff = abs(coordinate_diff); % turn them all to absolute values to compare
+
+    if (coordinate_diff(1,1) < near_coordinates) ...
+        && (coordinate_diff(1,2) < near_coordinates) ...
+        && (coordinate_diff(1,3) < near_coordinates)
+        
+        count_2 = count_2 + 1;
+        actual_conjunctions(count_2,:) = possible_conj_indeces(index_6,:);
+    end
+end
+
+count_2
+actual_conjunctions
